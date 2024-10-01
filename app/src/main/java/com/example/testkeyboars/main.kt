@@ -1,5 +1,8 @@
 package com.example.testkeyboars
 
+
+import org.jline.terminal.Terminal
+import org.jline.terminal.TerminalBuilder
 import kotlin.concurrent.thread
 import kotlin.random.Random
 
@@ -11,14 +14,18 @@ fun main() {
     val attempts = readln().toInt()
 
     println("Задайте скорость игры от 1 до 9")
-    val speed = readln().toInt()
+    val speed = readln().toInt().takeIf { it in 1..9 } ?: 6
 
     println("Стартуем? Д/Н")
     val start = readln()
 
+    System.setProperty("org.jline.terminal", "debug")
+
     if (start.equals("Д", ignoreCase = true)) {
         var score = 0
         val alphabet = ('А'..'Я') + ('а'..'я')
+
+        val terminal: Terminal = TerminalBuilder.terminal()
 
         repeat(attempts) {
             val letter = alphabet.random()
@@ -33,14 +40,27 @@ fun main() {
                 }
             }
 
+            val inputThread = thread {
+                while (running) {
+                    val inputChar = terminal.reader().read().toChar()
+                    if (inputChar == letter) {
+                        score++
+                        running = false
+                    }
+                }
+            }
+
+            /*
                 val input = System.`in`.read().toChar()
                 if (input == letter) {
                     score++
                     running = false
                 }
+             */
 
 
             letterThread.join()
+            inputThread.interrupt()
 
         }
 
